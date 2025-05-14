@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Nicolas DUPONT | CV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header, footer {
+      text-align: center;
+      padding: 15px;
+      background: #111827;
+      color: white;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    canvas {
+      width: 100%;
+      max-width: 800px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .language-buttons, .download-button {
+      margin-top: 15px;
+    }
+    .language-button, .download-button button {
+      padding: 10px 15px;
+      background-color: #304263;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .language-button:hover, .download-button button:hover {
+      background-color: #1e2b4d;
+    }
+    .error-message {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+
+  <!-- PDF.js via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
+  <!-- jsPDF via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>Nicolas DUPONT</h1>
+  <p>Data Engineer | CV en ligne</p>
+</header>
+
+<main>
+  <canvas id="pdf-canvas"></canvas>
+  <div id="error-message" class="error-message"></div>
+
+  <div class="language-buttons">
+    <button class="language-button" onclick="loadPDF('CV_NDupont.pdf')">Version Française</button>
+    <button class="language-button" onclick="loadPDF('CV_NDupont_EN.pdf')">Version Anglaise</button>
+  </div>
+
+  <div class="download-button">
+    <button onclick="downloadPDF()">Télécharger le PDF</button>
+  </div>
+</main>
+
+<footer>
+  📧 nicolas31dupont@gmail.com | 📍 Toulouse, France |
+  <a href="https://github.com/NAPondu" style="color: #a5b4fc;">GitHub</a>
+</footer>
+
+<script>
+  // Définir le worker PDF.js
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+
+  const canvas = document.getElementById('pdf-canvas');
+  const context = canvas.getContext('2d');
+  const errorMessage = document.getElementById('error-message');
+
+  function loadPDF(url) {
+    const loadingTask = pdfjsLib.getDocument(url);
+    loadingTask.promise.then(function(pdf) {
+      // On prend la première page du PDF
+      pdf.getPage(1).then(function(page) {
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        page.render(renderContext);
+        errorMessage.textContent = '';
+      });
+    }, function(reason) {
+      console.error(reason);
+      errorMessage.textContent = 'Erreur de chargement du PDF: ' + reason;
+    });
+  }
+
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+      unit: 'px',
+      format: [canvas.width, canvas.height]
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save('CV.pdf');
+  }
+
+  // Charger la version française par défaut au chargement de la page
+  window.onload = function() {
+    loadPDF('CV_NDupont.pdf');
+  };
+</script>
+
+</body>
+</html>
