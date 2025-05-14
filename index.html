@@ -49,7 +49,11 @@
       flex-direction: column;
       padding: 20px;
     }
-    iframe {
+    #pdf-container {
+      width: 100%;
+      overflow: auto;
+    }
+    canvas {
       width: 100%;
       border: 1px solid #ccc;
       border-radius: 6px;
@@ -76,22 +80,28 @@
 </header>
 
 <main>
-  <iframe id="pdf-viewer" src="CV_NDupont.pdf" frameborder="0"></iframe>
+  <div id="pdf-container">
+    <canvas id="pdf-canvas"></canvas>
+  </div>
   <div id="error-message" class="error-message"></div>
 </main>
 
 <footer>
-  <span>📧 nicolas31dupont@gmail.com | 📍 Toulouse, France |</span>
-  <a href="https://github.com/NAPondu" style="color: #a5b4fc;">GitHub</a>
+  <span>📧 <a href="mailto:nicolas31dupont@gmail.com" style="color: white;">nicolas31dupont@gmail.com</a> |</span>
+  <a href="https://github.com/NAPondu/CV-resume" style="color: #a5b4fc;" id="footer-github">Dépot GitHub</a>
 </footer>
 
+<!-- PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
 <script>
   const translations = {
     fr: {
-      headerSubtitle: "Data Engineer | CV en ligne"
+      headerSubtitle: "Data Engineer | CV en ligne",
+      footerGitHub: "Dépot GitHub"
     },
     en: {
-      headerSubtitle: "Data Engineer | Online CV"
+      headerSubtitle: "Data Engineer | Online CV",
+      footerGitHub: "GitHub Repository"
     }
   };
 
@@ -99,15 +109,40 @@
 
   function toggleLanguage() {
     currentLanguage = currentLanguage === 'fr' ? 'en' : 'fr';
-    changeLanguage(currentLanguage);
+
+    document.getElementById('header-subtitle').textContent = translations[currentLanguage].headerSubtitle;
+    document.getElementById('footer-github').textContent = translations[currentLanguage].footerGitHub;
     document.querySelector('.language-button').textContent = currentLanguage === 'fr' ? '🇬🇧' : '🇫🇷';
+
+    loadPDF(currentLanguage === 'fr' ? 'CV_NDupont.pdf' : 'CV_NDupont_EN.pdf');
   }
 
-  function changeLanguage(lang) {
-    document.getElementById('header-subtitle').textContent = translations[lang].headerSubtitle;
+  function loadPDF(url) {
+    const loadingTask = pdfjsLib.getDocument(url);
+    loadingTask.promise.then(function(pdf) {
+      pdfDoc = pdf;
+      renderPage(1);
+    }, function(reason) {
+      console.error(reason);
+      document.getElementById('error-message').textContent = 'PDF Loading Error: ' + reason;
+    });
+  }
 
-    // Update the iframe source to load the appropriate PDF
-    document.getElementById('pdf-viewer').src = lang === 'fr' ? 'CV_NDupont.pdf' : 'CV_NDupont_EN.pdf';
+  function renderPage(pageNumber) {
+    pdfDoc.getPage(pageNumber).then(function(page) {
+      const viewport = page.getViewport({ scale: 1.0 });
+      const canvas = document.getElementById('pdf-canvas');
+      const context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport
+      };
+
+      page.render(renderContext);
+    });
   }
 
   function downloadPDF() {
@@ -119,13 +154,6 @@
     link.click();
     document.body.removeChild(link);
   }
-
-  // Adjust iframe height based on content
-  const iframe = document.getElementById('pdf-viewer');
-  iframe.addEventListener('load', function() {
-    iframe.style.height = iframe.contentDocument.body.scrollHeight + 'px';
-    iframe.style.width = iframe.contentDocument.body.scrollWidth + 'px';
-  });
 
   // Load the French version by default
   window.onload = function() {
