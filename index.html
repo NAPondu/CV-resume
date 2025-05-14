@@ -93,6 +93,7 @@
 
 <!-- PDF.js library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
+
 <script>
   const translations = {
     fr: {
@@ -106,6 +107,10 @@
   };
 
   let currentLanguage = 'fr';
+  let pdfDoc = null;
+
+  // Initialize PDF.js worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
 
   function toggleLanguage() {
     currentLanguage = currentLanguage === 'fr' ? 'en' : 'fr';
@@ -130,7 +135,7 @@
 
   function renderPage(pageNumber) {
     pdfDoc.getPage(pageNumber).then(function(page) {
-      const viewport = page.getViewport({ scale: 1.0 });
+      const viewport = page.getViewport({ scale: 2.0 });
       const canvas = document.getElementById('pdf-canvas');
       const context = canvas.getContext('2d');
       canvas.height = viewport.height;
@@ -158,6 +163,7 @@
   // Load the French version by default
   window.onload = function() {
     changeLanguage('fr');
+    loadPDF('CV_NDupont.pdf');
   };
 </script>
 
