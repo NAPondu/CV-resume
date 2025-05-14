@@ -21,35 +21,40 @@
       background: #111827;
       color: white;
     }
-    main {
-      flex: 1;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-buttons {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      gap: 10px;
     }
-    iframe {
-      width: 100%;
-      max-width: 800px;
-      height: 800px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .language-buttons, .download-button {
-      margin-top: 15px;
-    }
-    .language-button, .download-button button {
+    .language-button, .download-button {
       padding: 10px 15px;
       background-color: #304263;
       color: white;
       border: none;
       border-radius: 4px;
-      margin: 5px;
       cursor: pointer;
+      font-size: 16px;
     }
-    .language-button:hover, .download-button button:hover {
+    .language-button:hover, .download-button:hover {
       background-color: #1e2b4d;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    iframe {
+      width: 100%;
+      height: calc(100vh - 150px); /* Adjust based on header and footer height */
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .error-message {
       color: red;
@@ -60,64 +65,57 @@
 <body>
 
 <header>
-  <h1 id="header-title">Nicolas DUPONT</h1>
-  <p id="header-subtitle">Data Engineer | CV en ligne</p>
+  <div class="header-buttons">
+    <button class="language-button" onclick="toggleLanguage()">🇬🇧</button>
+    <button class="download-button" onclick="downloadPDF()">📥</button>
+  </div>
+  <div>
+    <h1>Nicolas DUPONT</h1>
+    <p id="header-subtitle">Data Engineer | CV en ligne</p>
+  </div>
+  <div style="width: 58px;"></div> <!-- Spacer to balance the header layout -->
 </header>
 
 <main>
   <iframe id="pdf-viewer" src="CV_NDupont.pdf" frameborder="0"></iframe>
   <div id="error-message" class="error-message"></div>
-
-  <div class="language-buttons">
-    <button class="language-button" onclick="changeLanguage('fr')">Version Française</button>
-    <button class="language-button" onclick="changeLanguage('en')">Version Anglaise</button>
-  </div>
-
-  <div class="download-button">
-    <button id="download-button" onclick="downloadPDF()">Télécharger le PDF</button>
-  </div>
 </main>
 
 <footer>
-  <span id="footer-contact">📧 nicolas31dupont@gmail.com | 📍 Toulouse, France |</span>
-  <a href="https://github.com/NAPondu" style="color: #a5b4fc;" id="footer-github">GitHub</a>
+  <span>📧 nicolas31dupont@gmail.com | 📍 Toulouse, France |</span>
+  <a href="https://github.com/NAPondu" style="color: #a5b4fc;">GitHub</a>
 </footer>
 
 <script>
   const translations = {
     fr: {
-      headerTitle: "Nicolas DUPONT",
-      headerSubtitle: "Data Engineer | CV en ligne",
-      downloadButton: "Télécharger le PDF",
-      footerContact: "📧 nicolas31dupont@gmail.com | 📍 Toulouse, France |",
-      footerGithub: "GitHub"
+      headerSubtitle: "Data Engineer | CV en ligne"
     },
     en: {
-      headerTitle: "Nicolas DUPONT",
-      headerSubtitle: "Data Engineer | Online CV",
-      downloadButton: "Download PDF",
-      footerContact: "📧 nicolas31dupont@gmail.com | 📍 Toulouse, France |",
-      footerGithub: "GitHub"
+      headerSubtitle: "Data Engineer | Online CV"
     }
   };
 
+  let currentLanguage = 'fr';
+
+  function toggleLanguage() {
+    currentLanguage = currentLanguage === 'fr' ? 'en' : 'fr';
+    changeLanguage(currentLanguage);
+    document.querySelector('.language-button').textContent = currentLanguage === 'fr' ? '🇬🇧' : '🇫🇷';
+  }
+
   function changeLanguage(lang) {
-    document.getElementById('header-title').textContent = translations[lang].headerTitle;
     document.getElementById('header-subtitle').textContent = translations[lang].headerSubtitle;
-    document.getElementById('download-button').textContent = translations[lang].downloadButton;
-    document.getElementById('footer-contact').textContent = translations[lang].footerContact;
-    document.getElementById('footer-github').textContent = translations[lang].footerGithub;
 
     // Update the iframe source to load the appropriate PDF
     document.getElementById('pdf-viewer').src = lang === 'fr' ? 'CV_NDupont.pdf' : 'CV_NDupont_EN.pdf';
   }
 
   function downloadPDF() {
-    const lang = document.getElementById('header-subtitle').textContent.includes('en ligne') ? 'fr' : 'en';
-    const pdfUrl = lang === 'fr' ? 'CV_NDupont.pdf' : 'CV_NDupont_EN.pdf';
+    const pdfUrl = currentLanguage === 'fr' ? 'CV_NDupont.pdf' : 'CV_NDupont_EN.pdf';
     const link = document.createElement('a');
     link.href = pdfUrl;
-    link.download = 'CV.pdf';
+    link.download = 'CV_NDupont.pdf';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
