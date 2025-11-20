@@ -2,169 +2,38 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Nicolas DUPONT | CV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background: #f3f4f6;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header, footer {
-      text-align: center;
-      padding: 15px;
-      background: #111827;
-      color: white;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .language-button, .download-button {
-      padding: 10px 15px;
-      background-color: #304263;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .language-button:hover, .download-button:hover {
-      background-color: #1e2b4d;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
-    #pdf-container {
-      width: 100%;
-      overflow: auto;
-    }
-    canvas {
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .error-message {
-      color: red;
-      margin-top: 10px;
-    }
-  </style>
+  <title>Nicolas DUPONT | CV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header>
+    <div class="header-buttons">
+      <button class="language-button" id="language-button">🇬🇧</button>
+      <button class="download-button" id="download-button">📥</button>
+    </div>
+    <div class="header-title">
+      <h1>Nicolas DUPONT</h1>
+      <p id="header-subtitle">CV numérique</p>
+    </div>
+    <div class="header-spacer"></div>
+  </header>
 
-<header>
-  <div class="header-buttons">
-    <button class="language-button" onclick="toggleLanguage()">🇬🇧</button>
-    <button class="download-button" onclick="downloadPDF()">📥</button>
-  </div>
-  <div>
-    <h1>Nicolas DUPONT</h1>
-    <p id="header-subtitle">CV numérique</p>
-  </div>
-  <div style="width: 58px;"></div> <!-- Spacer to balance the header layout -->
-</header>
+  <main>
+    <div id="pdf-container">
+      <canvas id="pdf-canvas"></canvas>
+    </div>
+    <div id="error-message" class="error-message"></div>
+  </main>
 
-<main>
-  <div id="pdf-container">
-    <canvas id="pdf-canvas"></canvas>
-  </div>
-  <div id="error-message" class="error-message"></div>
-</main>
+  <footer>
+    <span>📧 <a href="mailto:nicolas31dupont@gmail.com">nicolas31dupont@gmail.com</a> |</span>
+    <a href="https://github.com/NAPondu/CV-resume" id="footer-github">Dépot GitHub</a>
+  </footer>
 
-<footer>
-  <span>📧 <a href="mailto:nicolas31dupont@gmail.com" style="color: white;">nicolas31dupont@gmail.com</a> |</span>
-  <a href="https://github.com/NAPondu/CV-resume" style="color: #a5b4fc;" id="footer-github">Dépot GitHub</a>
-</footer>
-
-<!-- PDF.js library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
-
-<script>
-  const translations = {
-    fr: {
-      headerSubtitle: "CV numérique",
-      footerGitHub: "Dépot GitHub"
-    },
-    en: {
-      headerSubtitle: "Digital CV",
-      footerGitHub: "GitHub Repository"
-    }
-  };
-
-  let currentLanguage = 'fr';
-  let pdfDoc = null;
-
-  // Initialize PDF.js worker
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
-
-  function toggleLanguage() {
-    currentLanguage = currentLanguage === 'fr' ? 'en' : 'fr';
-
-    document.getElementById('header-subtitle').textContent = translations[currentLanguage].headerSubtitle;
-    document.getElementById('footer-github').textContent = translations[currentLanguage].footerGitHub;
-    document.querySelector('.language-button').textContent = currentLanguage === 'fr' ? '🇬🇧' : '🇫🇷';
-
-    loadPDF(currentLanguage === 'fr' ? 'CV_NDupont.pdf' : 'CV_NDupont_EN.pdf');
-  }
-
-  function loadPDF(url) {
-    const loadingTask = pdfjsLib.getDocument(url);
-    loadingTask.promise.then(function(pdf) {
-      pdfDoc = pdf;
-      renderPage(1);
-    }, function(reason) {
-      console.error(reason);
-      document.getElementById('error-message').textContent = 'PDF Loading Error: ' + reason;
-    });
-  }
-
-  function renderPage(pageNumber) {
-    pdfDoc.getPage(pageNumber).then(function(page) {
-      const viewport = page.getViewport({ scale: 2.0 });
-      const canvas = document.getElementById('pdf-canvas');
-      const context = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      const renderContext = {
-        canvasContext: context,
-        viewport: viewport
-      };
-
-      page.render(renderContext);
-    });
-  }
-
-  function downloadPDF() {
-    const pdfUrl = currentLanguage === 'fr' ? 'CV_NDupont.pdf' : 'CV_NDupont_EN.pdf';
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = 'CV_NDupont.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  // Load the French version by default
-  window.onload = function() {
-    loadPDF('CV_NDupont.pdf');
-  };
-</script>
-
+  <!-- PDF.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
